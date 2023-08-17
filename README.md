@@ -1,2 +1,2 @@
 # ROSKON
-Autonomous Underwater Vehicle running on ROS 2 
+Autonomous Underwater Vehicle running on ROS 2
