@@ -83,15 +83,15 @@ class SerialProtocol(Protocol):
     
     def parse_data(self, data: bytearray, msg_type: int) -> None:
         print(data, msg_type)
-        if msg_type == MessageFromOkon.MSG_FROM_OKON_PID:
+        if msg_type == MessageFromOkon.PID:
             pids = np.frombuffer(data, dtype=np.float32)
             #callbacks.NewPids?.Invoke(pids)
-        elif msg_type == MessageFromOkon.MSG_FROM_OKON_SERVICE_CONFIRM:
+        elif msg_type == MessageFromOkon.SERVICE_CONFIRM:
             confirm_type = data[0]
             msg = ""
             # callbacks.NewConfirm?.Invoke(msg);
             self.pub.publish(String(data=str(confirm_type)))
-        elif msg_type == MessageFromOkon.MSG_FROM_OKON_CL_MATRIX:
+        elif msg_type == MessageFromOkon.CL_MATRIX:
             cl_matrix = np.frombuffer(data, dtype=np.float32)
             # callbacks.NewCLMatrix?.Invoke(cl_matrix);
 
