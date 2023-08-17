@@ -56,7 +56,7 @@ class SerialProtocol(Protocol):
         self.transport = None
         self.node = rclpy.create_node("tcm_bridge")
         self.pub = self.node.create_publisher(String, "dummy_topic_pub", 10)
-        self.pub2 = self.node.create_publisher(String, "dummy_topic_pub", 10)
+        self.pub2 = self.node.create_publisher(String, "dummy_topic_pub2", 10)
         self.sub = self.node.create_subscription(String, 'topic', self.tcm_sub_callback, 10)
         self.sub2 = self.node.create_subscription(String, 'topic2', self.tcm_sub_callback, 10)
         self.publishers = {} # msg_type -> publisher ?
@@ -68,7 +68,6 @@ class SerialProtocol(Protocol):
 
     def data_received(self, msg):
         data, msg_type = msg
-        print("SerialProtocol", data, msg_type)
         self.parse_data(data, msg_type)
         
     def connection_lost(self, exc):
@@ -78,11 +77,13 @@ class SerialProtocol(Protocol):
         
     # pub.publish(String(data=str(line)))
     def tcm_sub_callback(self, msg):
-        msg = tcm_parser.create_msg(3, bytes(msg.data))
-        self.transport.write(msg) # READER THREADSAFE ISSUE !!
+        print("callback", msg, threading.get_ident())
+        self.pub2.publish(String(data=str('-_-')))
+        # msg = tcm_parser.create_msg(3, bytes(msg.data))
+        # self.transport.write(msg) # READER THREADSAFE ISSUE !!
     
     def parse_data(self, data: bytearray, msg_type: int) -> None:
-        print(data, msg_type)
+        print("parse_data", data, msg_type)
         if msg_type == MessageFromOkon.PID:
             pids = np.frombuffer(data, dtype=np.float32)
             #callbacks.NewPids?.Invoke(pids)
@@ -108,7 +109,7 @@ def main():
     with reader as protocol:
         while True:
             time.sleep(1)
-            msg = tcm_parser.create_msg(3, bytes(b'7'*100))
+            msg = tcm_parser.create_msg(MessageFromOkon.SERVICE_CONFIRM, bytes(b'7'*100))
             reader.write(msg)
 
 if __name__ == "__main__":

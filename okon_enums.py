@@ -1,23 +1,23 @@
-from enum import Enum
+from enum import IntEnum
 
-class MessageFromOkon(Enum):
+class MessageFromOkon(IntEnum):
     PID = 0x0
     CL_MATRIX = 0x1
     HEART_BEAT = 0x2
     SERVICE_CONFIRM = 0x3
 
-class MessageToOkon(Enum):
+class MessageToOkon(IntEnum):
     REQUEST = 0x0
     SERVICE = 0x1
     STICKS = 0x2
     MODE = 0x3
     CL_STATUS = 0x4
 
-class MessageToOkonRequest(Enum):
+class MessageToOkonRequest(IntEnum):
     PID = 0x0
     CL_MATRIX = 0x1
 
-class MessageToOkonService(Enum):
+class MessageToOkonService(IntEnum):
     ENTER = 0x0
     REBOOT = 0x1
     UPDATE_CL_MATRIX = 0x2
