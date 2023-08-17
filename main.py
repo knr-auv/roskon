@@ -4,7 +4,7 @@ from serial import Serial
 import rclpy
 import serial
 from serial.threaded import Protocol, ReaderThread
-from std_msgs.msg import String
+from std_msgs.msg import String, Float32MultiArray
 import tcm_parser
 from okon_enums import MessageFromOkon, MessageToOkon, MessageToOkonRequest, MessageToOkonService
 import numpy as np
@@ -56,11 +56,12 @@ class SerialProtocol(Protocol):
         self.transport = None
         self.node = rclpy.create_node("tcm_bridge")
         self.pub = self.node.create_publisher(String, "dummy_topic_pub", 10)
-        self.pub2 = self.node.create_publisher(String, "dummy_topic_pub2", 10)
+        self.pub2 = self.node.create_publisher(Float32MultiArray, "dummy_topic_pub2", 10)
         self.sub = self.node.create_subscription(String, 'topic', self.tcm_sub_callback, 10)
-        self.sub2 = self.node.create_subscription(String, 'topic2', self.tcm_sub_callback, 10)
+        self.sub2 = self.node.create_subscription(String, 'topic2', self.tcm_sub_callback2, 10)
         self.publishers = {} # msg_type -> publisher ?
         self.subscribers = {}
+        
     
     def connection_made(self, transport):
         self.transport = transport
@@ -78,12 +79,19 @@ class SerialProtocol(Protocol):
     # pub.publish(String(data=str(line)))
     def tcm_sub_callback(self, msg):
         print("callback", msg, threading.get_ident())
+        # self.pub2.publish(String(data=str('-_-')))
+        # msg = tcm_parser.create_msg(3, bytes(msg.data))
+        # self.transport.write(msg) # READER THREADSAFE ISSUE !!
+
+    # pub.publish(String(data=str(line)))
+    def tcm_sub_callback2(self, msg):
+        print("callback", msg, threading.get_ident())
         self.pub2.publish(String(data=str('-_-')))
         # msg = tcm_parser.create_msg(3, bytes(msg.data))
         # self.transport.write(msg) # READER THREADSAFE ISSUE !!
     
     def parse_data(self, data: bytearray, msg_type: int) -> None:
-        print("parse_data", data, msg_type)
+        print("parse_data", data[:5], msg_type)
         if msg_type == MessageFromOkon.PID:
             pids = np.frombuffer(data, dtype=np.float32)
             #callbacks.NewPids?.Invoke(pids)
@@ -95,6 +103,7 @@ class SerialProtocol(Protocol):
         elif msg_type == MessageFromOkon.CL_MATRIX:
             cl_matrix = np.frombuffer(data, dtype=np.float32)
             # callbacks.NewCLMatrix?.Invoke(cl_matrix);
+            self.pub2.publish(Float32MultiArray(data=cl_matrix))
 
 def main():
     rclpy.init()
@@ -108,9 +117,9 @@ def main():
     reader = OkonReaderThread(connection, SerialProtocol)
     with reader as protocol:
         while True:
-            time.sleep(1)
-            msg = tcm_parser.create_msg(MessageFromOkon.SERVICE_CONFIRM, bytes(b'7'*100))
+            msg = tcm_parser.create_msg(MessageFromOkon.SERVICE_CONFIRM, bytes(b'7'*10))
             reader.write(msg)
+            rclpy.spin_once(protocol.node, timeout_sec = 0)
 
 if __name__ == "__main__":
     main()
