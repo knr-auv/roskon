@@ -1,0 +1,14 @@
+[project]
+name = "roskon"
+version = "0.1.0"
+description = "ultra fast turtlesim installation on multiple platforms"
+authors = ["Patryk Niemiec <niemiecpatryk@outlook.com>"]
+channels = ["conda-forge", "robostack-staging"]
+platforms = ["linux-64", "win-64", "linux-aarch64"]
+
+[tasks]
+
+[dependencies]
+ros-humble-desktop = "*"
+numpy = "*"
+pyserial = "*"  
